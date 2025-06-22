@@ -1,0 +1,10 @@
+[project]
+name = "insightengine"
+version = "0.1.0"
+description = "InsightEngine is a core module of the another-mentor system that processes and analyzes user personal data to provide personalized vector search and recommendation services while building comprehensive user profiles."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "hanlp>=2.1.1",
+    "markitdown>=0.1.2",
+]
