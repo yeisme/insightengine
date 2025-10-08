@@ -63,7 +63,7 @@ class ParseItem(BaseModel):
     id: Optional[str] = None
     # 如果该单元主要是文本（例如段落、ASR 转写），则填充 text
     text: Optional[str] = None
-    # token/word counts, optional
+    # 文本长度（例如 token 数或字符数），可选
     length: Optional[int] = None
     # 相对位置（例如页码、块索引等）
     position: Optional[int] = None

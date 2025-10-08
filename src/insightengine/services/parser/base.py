@@ -42,7 +42,7 @@ class MultiModalParser(Parser):
     默认的 parse 会基于 opts['content_type']、文件扩展名或 source 的类型做简单调度。
     """
 
-    # 默认的前缀->处理方法映射（method names）。子类可以重写或运行时通过
+    # 默认的前缀->处理方法名映射。子类可以重写或运行时通过
     # `register_media` 添加/调整项以支持更多类型。
     media_dispatch: tuple[tuple[str, str], ...] = (
         ("image", "parse_image"),
@@ -77,22 +77,26 @@ class MultiModalParser(Parser):
     def register_media(cls, prefix: str, method_name: str) -> None:
         """在类层面注册新的前缀->处理方法名映射。
 
-        Example: MyParser.register_media('application/vnd.custom', 'parse_custom')
+        示例：`MyParser.register_media('application/vnd.custom', 'parse_custom')`
         """
         lst = list(cls.media_dispatch)
         lst.append((prefix, method_name))
         cls.media_dispatch = tuple(lst)
 
     def parse_text(self, source: Any, **opts) -> ParseResult:
+        # 文本解析接口，默认留给子类实现
         raise NotImplementedError()
 
     def parse_image(self, source: Any, **opts) -> ParseResult:
+        # 图像解析接口，默认留给子类实现
         raise NotImplementedError()
 
     def parse_audio(self, source: Any, **opts) -> ParseResult:
+        # 音频解析接口，默认留给子类实现
         raise NotImplementedError()
 
     def parse_video(self, source: Any, **opts) -> ParseResult:
+        # 视频解析接口，默认留给子类实现
         raise NotImplementedError()
 
     def parse(self, source: Any, **opts) -> ParseResult:
@@ -154,5 +158,5 @@ class MultiModalParser(Parser):
                 except Exception:
                     raise
 
-        # 如果到这里还没有返回，则无法确定类型或没有可用的 handler
+        # 如果到这里还没有返回，则无法确定类型或没有可用的处理器
         raise ParserError("Unable to infer media type; provide content_type in opts")

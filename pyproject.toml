@@ -3,10 +3,27 @@ name = "insightengine"
 version = "0.1.0"
 description = "InsightEngine is a core module of the another-mentor system that processes and analyzes user personal data to provide personalized vector search and recommendation services while building comprehensive user profiles."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
-
+    "beautifulsoup4",
+    "markdown>=3.9,<4",
+    "pypdf>=6.1.1,<7",
+    "python-docx>=1.2.0,<2",
+    "ruff>=0.14.0,<0.15",
+    "mypy>=1.18.2,<2", "pydantic>=2.12.0,<3",
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pixi.workspace]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["win-64", "linux-64", "osx-64"]
+
+[tool.pixi.pypi-dependencies]
+insightengine = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+python = "3.12.11.*"
