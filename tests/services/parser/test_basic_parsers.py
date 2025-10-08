@@ -9,10 +9,14 @@ from textwrap import dedent
 import pytest
 
 from insightengine.services.parser import (
+    DocParser,
     DocxParser,
+    ExcelParser,
     HtmlParser,
     MarkdownParser,
     PdfParser,
+    PptParser,
+    PptxParser,
     ParserError,
 )
 
@@ -270,3 +274,100 @@ def test_pdf_parser_missing_file_raises(
         parser.parse(str(missing_path))
 
     parser_logger.info("PdfParser 预期异常: %s", exc_info.value)
+
+
+def test_doc_parser_handles_simple_doc(
+    tmp_path: Path, parser_logger: logging.Logger
+) -> None:
+    doc_path = tmp_path / "legacy.doc"
+    doc_path.write_bytes("Legacy doc paragraph\n第二段文本".encode("utf-16-le"))
+
+    parser = DocParser()
+    result = parser.parse(doc_path)
+    log_parse_result(parser_logger, "DocParser", result)
+
+    assert any("Legacy doc paragraph" in (item.text or "") for item in result.items)
+    assert result.metadata["content_type"] == "application/msword"
+    assert result.metadata.get("legacy_format") is True
+    assert any("第二段文本" in (item.text or "") for item in result.items)
+
+
+def test_excel_parser_reads_xlsx_and_xls(
+    tmp_path: Path, parser_logger: logging.Logger
+) -> None:
+    from openpyxl import Workbook
+    import xlwt
+
+    xlsx_path = tmp_path / "sample.xlsx"
+    workbook = Workbook()
+    sheet = workbook.active
+    assert sheet is not None
+    sheet.title = "Sheet1"
+    sheet.append(["Name", "Value"])
+    sheet.append(["Alice", 10])
+    sheet.append(["Bob", 20])
+    workbook.save(xlsx_path)
+
+    parser = ExcelParser()
+    xlsx_result = parser.parse(xlsx_path)
+    log_parse_result(parser_logger, "ExcelParser[xlsx]", xlsx_result)
+
+    assert any("Alice" in (item.text or "") for item in xlsx_result.items)
+    assert xlsx_result.metadata["sheet_count"] == 1
+
+    xls_path = tmp_path / "legacy.xls"
+    wb = xlwt.Workbook()
+    sheet = wb.add_sheet("Data")
+    sheet.write(0, 0, "Item")
+    sheet.write(0, 1, "Count")
+    sheet.write(1, 0, "Widget")
+    sheet.write(1, 1, 42)
+    wb.save(str(xls_path))
+
+    xls_result = parser.parse(xls_path)
+    log_parse_result(parser_logger, "ExcelParser[xls]", xls_result)
+
+    assert any("Widget" in (item.text or "") for item in xls_result.items)
+    assert xls_result.metadata["content_type"] == "application/vnd.ms-excel"
+
+
+def test_pptx_parser_extracts_slide_text(
+    tmp_path: Path, parser_logger: logging.Logger
+) -> None:
+    from pptx import Presentation
+
+    pptx_path = tmp_path / "slides.pptx"
+    presentation = Presentation()
+    slide_layout = presentation.slide_layouts[1]
+    slide = presentation.slides.add_slide(slide_layout)
+    title_shape = slide.shapes.title
+    assert title_shape is not None
+    title_shape.text = "Deck Title"
+    body_placeholder = slide.shapes.placeholders[1]
+    assert body_placeholder.has_text_frame
+    body_frame = body_placeholder.text_frame
+    body_frame.text = "第一条"
+    paragraph = body_frame.add_paragraph()
+    paragraph.text = "第二条"
+    presentation.save(str(pptx_path))
+
+    parser = PptxParser()
+    result = parser.parse(pptx_path)
+    log_parse_result(parser_logger, "PptxParser", result)
+
+    assert any("第一条" in (item.text or "") for item in result.items)
+    assert result.metadata["slide_count"] == 1
+
+
+def test_ppt_parser_best_effort_text(
+    tmp_path: Path, parser_logger: logging.Logger
+) -> None:
+    ppt_path = tmp_path / "legacy.ppt"
+    ppt_path.write_bytes("旧版 PPT 文本内容".encode("utf-16-le"))
+
+    parser = PptParser()
+    result = parser.parse(ppt_path)
+    log_parse_result(parser_logger, "PptParser", result)
+
+    assert any("PPT" in (item.text or "") for item in result.items)
+    assert result.metadata.get("legacy_format") is True

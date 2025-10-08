@@ -1,5 +1,5 @@
-"""DOCX 解析器子包导出符号。"""
+"""Word 相关解析器子包导出符号。"""
 
-from .parser import DocxParser
+from .parser import DocParser, DocxParser
 
-__all__ = ["DocxParser"]
+__all__ = ["DocParser", "DocxParser"]

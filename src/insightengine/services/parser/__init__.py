@@ -17,10 +17,12 @@ from .types import (
 )
 
 # 导入具体解析器以触发注册逻辑
+from .excel import ExcelParser  # noqa: F401
 from .html import HtmlParser  # noqa: F401
 from .markdown import MarkdownParser  # noqa: F401
 from .pdf import PdfParser  # noqa: F401
-from .word import DocxParser  # noqa: F401
+from .powerpoint import PptParser, PptxParser  # noqa: F401
+from .word import DocParser, DocxParser  # noqa: F401
 
 __all__ = [
     "Attachment",
@@ -38,5 +40,9 @@ __all__ = [
     "HtmlParser",
     "MarkdownParser",
     "PdfParser",
+    "DocParser",
     "DocxParser",
+    "ExcelParser",
+    "PptParser",
+    "PptxParser",
 ]

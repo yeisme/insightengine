@@ -19,7 +19,7 @@ class MediaType(str, Enum):
 class Attachment(BaseModel):
     """引用的附件或外部资源（例如图片、音视频、二进制附件或外部资源引用）。
 
-    保持与老版本向后兼容：保留 `url`, `mime`, `metadata` 字段，同时增加媒体相关的可选字段。
+    保留 `url`, `mime`, `metadata` 字段，同时增加媒体相关的可选字段。
     """
 
     id: Optional[str] = None
@@ -57,13 +57,13 @@ class BoundingBox(BaseModel):
 class ParseItem(BaseModel):
     """解析出的单元。可以表示文本块、带时间戳的媒体片段、或对图片的检测结果等。
 
-    设计目标：兼容原有文本解析场景，同时支持多媒体相关字段。
+    设计目标：兼容文本解析场景，同时支持多媒体相关字段。
     """
 
     id: Optional[str] = None
     # 如果该单元主要是文本（例如段落、ASR 转写），则填充 text
     text: Optional[str] = None
-    # 文本长度（例如 token 数或字符数），可选
+    # token/word counts, optional
     length: Optional[int] = None
     # 相对位置（例如页码、块索引等）
     position: Optional[int] = None
@@ -78,7 +78,16 @@ class ParseItem(BaseModel):
 
 
 class MediaSegment(BaseModel):
-    """表示来源文件中的一个媒体段落/片段（例如视频中某个时间区间或一张图片的检测结果）。"""
+    """表示来源文件中的一个媒体段落/片段（例如视频中某个时间区间或一张图片的检测结果）。
+
+    - `id`：可选，段落唯一标识符。
+    - `start_time`：可选，段落开始时间（秒）。
+    - `end_time`：可选，段落结束时间（秒）。
+    - `text`：可选，段落对应的文本内容（例如 ASR 转写）。
+    - `attachments`：可选，段落相关的附件列表。
+    - `metadata`：可选，段落的额外元信息。
+
+    """
 
     id: Optional[str] = None
     start_time: Optional[float] = None
@@ -91,9 +100,12 @@ class MediaSegment(BaseModel):
 class ParseResult(BaseModel):
     """整个文件/资源的解析结果，支持多模态输出。
 
+    设计目标：兼容原有文本解析场景，同时支持多媒体相关字段。
+    - `source` 可选，表示原始资源路径或标识。
     - `items` 保持为通用的解析单元（文本段/检测结果等）。
     - `segments` 专门用于音视频或其他带时间轴的媒体片段。
     - `attachments` 列出解析过程中收集到的独立资源（例如提取的图片、音频片段）。
+    - `metadata` 用于存储解析器相关的元信息（例如使用的解析器名称、版本等）。
     """
 
     source: Optional[str] = None
