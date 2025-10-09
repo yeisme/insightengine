@@ -21,3 +21,11 @@ venv/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+temp/
+log/*.log
+*.log
