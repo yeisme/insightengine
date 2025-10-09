@@ -16,7 +16,7 @@ dependencies = [
     "ruff>=0.14.0,<0.15",
     "pytest>=8.4.2,<9",
     "paddlepaddle>=3.2.0,<4",
-    "loguru>=0.7.3,<0.8", "pydantic>=2.12.0,<3", "pydantic-settings>=2.11.0,<3",
+    "loguru>=0.7.3,<0.8", "pydantic>=2.12.0,<3", "pydantic-settings>=2.11.0,<3", "langchain-openai>=0.3.35,<0.4", "langchain-core>=0.3.78,<0.4",
 ]
 
 [tool.setuptools.packages.find]
