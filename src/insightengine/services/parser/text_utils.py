@@ -43,10 +43,21 @@ def read_text_source(source: Any, *, encoding: str = "utf-8") -> tuple[str, str 
         return _read_path(source, encoding), str(source)
 
     if isinstance(source, str):
-        # 字符串既可能是已解码的内容，也可能是文件路径，优先尝试当作路径
+        # 字符串既可能是已解码的内容，也可能是文件路径。
+        # 如果字符串为空或仅包含空白，视为内容而不是路径（避免 Path('') -> Path('.') 导致错误）。
+        if not source.strip():
+            return "", None
+
+        # 优先尝试当作路径
         path_candidate = Path(source)
         if path_candidate.exists():
             return _read_path(path_candidate, encoding), str(path_candidate)
+
+        # 如果字符串看起来像一个文件路径（包含路径分隔符或有文件后缀），
+        # 则应当视为路径并在不存在时抛出错误，避免把错误的路径当作内容继续处理。
+        if ("/" in source) or ("\\" in source) or path_candidate.suffix:
+            raise ParserError("source must be an existing file path")
+
         return source, None
 
     if isinstance(source, (bytes, bytearray)):
@@ -75,7 +86,8 @@ def _read_path(path: Path, encoding: str) -> str:
 
 
 def _decode_bytes(data: bytes) -> str:
-    for enc in ("utf-8", "utf-8-sig", "latin-1"):
+    # Prefer utf-8-sig so that a leading BOM is removed when present
+    for enc in ("utf-8-sig", "utf-8", "latin-1"):
         try:
             return data.decode(enc)
         except UnicodeDecodeError:
@@ -126,7 +138,7 @@ def build_items_from_chunks(
         metadata = metadata_factory(idx, text) if metadata_factory else {}
         items.append(
             ParseItem(
-                id=f"item-{position}",
+                id=f"chunk-{idx}",
                 text=text,
                 length=len(text),
                 position=position,

@@ -14,7 +14,7 @@ InsightEngine 是 another-mentor 的“智能解析与索引平台”，负责�
 
 > 早期阶段可将子服务以单体方式部署，后续按负载逐步拆分独立服务与工作队列。
 
-| **Crawler Service**         | 抓取公开 Web 资源与第三方站点（例如哔哩哔哩用户使用情况、特定网站使用情况、知乎热榜等），对抓取结果进行清洗、结构化并以事件发布到管道 | 调度任务 / 外部目标 URL / API 授权         | `insight.crawler.page.fetched.v1`、`insight.crawler.user.activity.v1`（见下文契约） |
+| **Crawler Service** | 抓取公开 Web 资源与第三方站点（例如哔哩哔哩用户使用情况、特定网站使用情况、知乎热榜等），对抓取结果进行清洗、结构化并以事件发布到管道 | 调度任务 / 外部目标 URL / API 授权 | `insight.crawler.page.fetched.v1`、`insight.crawler.user.activity.v1`（见下文契约） |
 
 ## 2. 事件与数据契约
 
@@ -123,7 +123,11 @@ InsightEngine 依赖 NATS JetStream 进行事件编排，核心主题如下：
     "status_code": 200,
     "fetched_at": "2025-10-06T12:00:00Z",
     "segments": [
-      { "segment_id": "seg-1", "text": "热搜条目文本...", "meta": { "rank": 1 } }
+      {
+        "segment_id": "seg-1",
+        "text": "热搜条目文本...",
+        "meta": { "rank": 1 }
+      }
     ],
     "stats": { "token_count": 128 }
   }
@@ -142,7 +146,7 @@ InsightEngine 依赖 NATS JetStream 进行事件编排，核心主题如下：
     "user_id": "user-123",
     "object_key": "crawler/bilibili/user-123/2025-10-06.json",
     "fetched_at": "2025-10-06T12:00:00Z",
-    "activities": [ { "type": "view", "target": "av12345", "time": "..." } ],
+    "activities": [{ "type": "view", "target": "av12345", "time": "..." }],
     "meta": { "auth_used": "api_key|cookie", "rate_limited": false }
   }
 }
@@ -167,7 +171,6 @@ InsightEngine 依赖 NATS JetStream 进行事件编排，核心主题如下：
 
 - 指标：`crawler_fetch_latency_seconds`、`crawler_fetch_error_total`、`crawler_rate_limited_total`、`crawler_pages_fetched_total`。
 - 跟踪：trace_id 与 event_id 链路贯穿到后续 Parser/Extractor。
-
 
 > 每个事件应携带 `event_id`、`trace_id`、`tenant` 以及 `payload.business_id（object_key + version）`，用于幂等与端到端追踪。
 

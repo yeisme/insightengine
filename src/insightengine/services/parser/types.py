@@ -15,6 +15,9 @@ class MediaType(str, Enum):
     BINARY = "binary"
     TEXT = "text"
 
+    def __str__(self) -> str:
+        return str(self.value)
+
 
 class Attachment(BaseModel):
     """引用的附件或外部资源（例如图片、音视频、二进制附件或外部资源引用）。
@@ -53,6 +56,8 @@ class BoundingBox(BaseModel):
     width: float
     height: float
 
+    confidence: Optional[float] = None
+
 
 class ParseItem(BaseModel):
     """解析出的单元。可以表示文本块、带时间戳的媒体片段、或对图片的检测结果等。
@@ -86,6 +91,8 @@ class MediaSegment(BaseModel):
     - `text`：可选，段落对应的文本内容（例如 ASR 转写）。
     - `attachments`：可选，段落相关的附件列表。
     - `metadata`：可选，段落的额外元信息。
+    - `language`：可选，段落的语言代码（例如 "en"）。
+    - `confidence`：可选，段落文本的置信度（0-1）。
 
     """
 
@@ -95,6 +102,8 @@ class MediaSegment(BaseModel):
     text: Optional[str] = None
     attachments: Sequence[Attachment] = Field(default_factory=list)
     metadata: Mapping[str, Any] = Field(default_factory=dict)
+    language: Optional[str] = None
+    confidence: Optional[float] = None
 
 
 class ParseResult(BaseModel):
