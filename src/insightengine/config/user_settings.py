@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, SecretStr, field_validator
 
@@ -16,7 +16,7 @@ class UserLLMConfig(BaseModel):
 
     支持 OpenAI 及兼容 OpenAI API 格式的服务（如 Azure OpenAI、本地部署的模型等）。
     用户可以通过自定义上传 API Key 创建配置实例。
-    
+
     为了支持多模型文件解析，应该使用支持多模型的模型。
 
     Examples:
@@ -117,86 +117,6 @@ class UserLLMConfig(BaseModel):
             # 确保 URL 不以 / 结尾（LangChain 会自动添加）
             return v.rstrip("/")
         return v
-
-    def get_langchain_chat_model(self):
-        """创建并返回 LangChain ChatOpenAI 实例。
-
-        Returns:
-            ChatOpenAI: 配置好的 LangChain ChatOpenAI 模型实例
-
-        Examples:
-            >>> config = UserLLMConfig(api_key="sk-xxx")
-            >>> llm = config.get_langchain_chat_model()
-            >>> response = llm.invoke("Hello, how are you?")
-        """
-        from langchain_openai import ChatOpenAI
-
-        # 构建参数字典
-        params: dict[str, Any] = {
-            "model": self.model,
-            "temperature": self.temperature,
-            "api_key": self.api_key.get_secret_value(),
-            "max_retries": self.max_retries,
-            "streaming": self.streaming,
-        }
-
-        # 添加可选参数
-        if self.base_url:
-            params["base_url"] = self.base_url
-        if self.max_tokens:
-            params["max_tokens"] = self.max_tokens
-        if self.timeout:
-            params["timeout"] = self.timeout
-        if self.organization:
-            params["organization"] = self.organization
-        if self.default_headers:
-            params["default_headers"] = self.default_headers
-
-        # Azure OpenAI 特殊处理
-        if self.api_version:
-            params["api_version"] = self.api_version
-            # Azure 需要设置 azure_endpoint（与 base_url 相同）
-            if self.base_url:
-                params["azure_endpoint"] = self.base_url
-
-        return ChatOpenAI(**params)
-
-    def get_langchain_embeddings(self, model: Optional[str] = None):
-        """创建并返回 LangChain OpenAI Embeddings 实例。
-
-        Args:
-            model: 嵌入模型名称，默认使用 text-embedding-3-small
-
-        Returns:
-            OpenAIEmbeddings: 配置好的 LangChain OpenAI Embeddings 实例
-
-        Examples:
-            >>> config = UserLLMConfig(api_key="sk-xxx")
-            >>> embeddings = config.get_langchain_embeddings()
-            >>> vectors = embeddings.embed_documents(["Hello", "World"])
-        """
-        from langchain_openai import OpenAIEmbeddings
-
-        embedding_model = model or "text-embedding-3-small"
-
-        # 构建参数字典
-        params: dict[str, Any] = {
-            "model": embedding_model,
-            "api_key": self.api_key.get_secret_value(),
-            "max_retries": self.max_retries,
-        }
-
-        # 添加可选参数
-        if self.base_url:
-            params["base_url"] = self.base_url
-        if self.timeout:
-            params["timeout"] = self.timeout
-        if self.organization:
-            params["organization"] = self.organization
-        if self.default_headers:
-            params["default_headers"] = self.default_headers
-
-        return OpenAIEmbeddings(**params)
 
     def model_dump_safe(self) -> dict:
         """安全地导出配置（隐藏敏感信息）。
