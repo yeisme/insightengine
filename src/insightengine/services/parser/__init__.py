@@ -17,6 +17,7 @@ from .types import (
 )
 
 # 导入具体解析器以触发注册逻辑
+from .audio import AudioParser  # noqa: F401
 from .excel import ExcelParser  # noqa: F401
 from .html import HtmlParser  # noqa: F401
 from .markdown import MarkdownParser  # noqa: F401
@@ -37,6 +38,7 @@ __all__ = [
     "ParserRegistry",
     "register_parser",
     "get_parser",
+    "AudioParser",
     "HtmlParser",
     "MarkdownParser",
     "PdfParser",
